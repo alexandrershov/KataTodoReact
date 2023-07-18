@@ -1,23 +1,21 @@
-/* eslint-disable jsx-a11y/label-has-associated-control */
-import React from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+
+import React, { useEffect } from 'react';
 
 import './TaskTimer.css';
 
-export default class TaskTimer extends React.Component {
-    componentDidUpdate(prevProps) {
-        const { item } = this.props;
-        const { minutes, seconds } = item.timer;
-        const { item: prevTask } = prevProps;
-        const { minutes: prevMin, seconds: prevSec } = prevTask.timer;
+export default function TaskTimer({ seconds, minutes, item, setIntervalId, tick }) {
+    const timerPause = () => {
+        clearInterval(item.timer.intervalId);
+        setIntervalId(item.id, null);
+    };
 
-        if (minutes !== prevMin || seconds !== prevSec) {
-            if (minutes <= 0 && seconds <= 0) this.timerPause();
-        }
-    }
+    useEffect(() => {
+        if (minutes <= 0 && seconds <= 0) timerPause();
+    }, [minutes, seconds]);
 
-    timerPlay = () => {
-        const { tick, item, setIntervalId } = this.props;
-        const { minutes, seconds, intervalId } = item.timer;
+    const timerPlay = () => {
+        const { intervalId } = item.timer;
 
         if (!intervalId && !(minutes <= 0 && seconds <= 0)) {
             const id = setInterval(() => tick(item.id), 1000);
@@ -25,25 +23,16 @@ export default class TaskTimer extends React.Component {
         }
     };
 
-    timerPause = () => {
-        const { item, setIntervalId } = this.props;
-        clearInterval(item.timer.intervalId);
-        setIntervalId(item.id, null);
-    };
+    return (
+        <div className="timer">
+            <span style={{fontSize: '18px'}}>
+                min {minutes} sec {seconds}
+            </span>
 
-    render() {
-        const { minutes, seconds } = this.props;
-        return (
-            <div className="timer">
-                <span>
-                    {minutes}:{seconds}
-                </span>
-
-                <button className="icon icon-play" type="button" aria-label="timer play" onClick={this.timerPlay} />
-                <button className="icon icon-pause" type="button" aria-label="timer pause" onClick={this.timerPause} />
-            </div>
-        );
-    }
+            <button className="icon icon-play" type="button" aria-label="timer play" onClick={timerPlay} />
+            <button className="icon icon-pause" type="button" aria-label="timer pause" onClick={timerPause} />
+        </div>
+    );
 }
 
 TaskTimer.defaultProps = {

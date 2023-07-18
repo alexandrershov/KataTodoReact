@@ -9,7 +9,7 @@ function Footer(props) {
 
     return (
         <footer className="footer">
-            <span className="todo-count">{count} item </span>
+            <span className="todo-count">{count} item unfinished</span>
             <TasksFilter onFilter={onFilter} />
             <button className="clear-completed" type="button" onClick={() => deleteCompleted()}>
                 Clear completed

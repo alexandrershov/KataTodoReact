@@ -10,7 +10,7 @@
     "prettier"
   ],
 
- 
+  "plugins": ["eslint-comments"],
   "parser": "@babel/eslint-parser", 
 
   "parserOptions": {
@@ -31,8 +31,10 @@
 
   "rules": {
     "linebreak-style": [0, "unix"],
+    "eslint-comments/no-use" : "off" ,
     "quotes": ["error", "single"],
     "semi":  ["warn", "always"],
+    "spaced-comment":"error",
     "react/react-in-jsx-scope": "off",
     "react/prop-types": 0,
     "import/no-unresolved": [2, { "caseSensitive": false }],

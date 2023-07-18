@@ -1,6 +1,7 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
+/* eslint-disable react/destructuring-assignment */
 
-import React, { Component } from 'react';
+import React, { useRef, useState } from 'react';
 import formatDistanceToNow from 'date-fns/formatDistanceToNow';
 import KG from 'date-fns/locale/en-AU';
 import PropTypes from 'prop-types';
@@ -8,144 +9,123 @@ import PropTypes from 'prop-types';
 import TaskTimer from '../TaskTimer/TaskTimer';
 import './Task.css';
 
-export default class Task extends Component {
-    constructor(props) {
-        super(props);
+export default function Task(props) {
+    const { item } = props;
 
-        const { item } = this.props;
-        this.editFieldRef = React.createRef();
+    const editFieldRef = useRef(null);
 
-        this.state = {
-            isDeleted: false,
-            editiValue: item.description,
-        };
-    }
+    const [taskState, setTask] = useState({
+        isDeleted: false,
+        editiValue: item.description,
+    });
 
-    onChangeEditiValue = (e) => {
-        this.setState({
-            editiValue: e.target.value,
-        });
+    const onChangeEditiValue = (e) => {
+        setTask((task) => ({ ...task, editiValue: e.target.value }));
     };
 
-    breakEditTask = () => {
-        const { item, toggleTaskEditMode } = this.props;
+    const breakEditTask = () => {
+        const { toggleTaskEditMode } = props;
 
         toggleTaskEditMode(item.id, false);
-        this.setState({
-            editiValue: item.description,
-        });
+
+        setTask((task) => ({ ...task, editiValue: item.description }));
     };
 
-    onKey = (e) => {
+    const onKey = (e) => {
         if (e.keyCode === 13) {
-            const { item, changeTaskText, toggleTaskEditMode } = this.props;
-            const { editiValue } = this.state;
+            const { changeTaskText, toggleTaskEditMode } = props;
+            const { editiValue } = taskState;
 
             changeTaskText(item.id, editiValue);
             toggleTaskEditMode(item.id, false);
         }
 
         if (e.keyCode === 27) {
-            this.breakEditTask();
+            breakEditTask();
         }
     };
 
-    onClickEdit = async () => {
-        const { item, toggleTaskEditMode } = this.props;
+    const onClickEdit = async () => {
+        const { toggleTaskEditMode } = props;
 
         await toggleTaskEditMode(item.id, true);
-        this.editFieldRef.current.focus();
+        editFieldRef.current.focus();
     };
 
-    DeleteTask() {
-        const { onDeleted, id } = this.props;
+    const DeleteTask = () => {
+        const { onDeleted, id } = props;
         onDeleted(id);
-        this.setState(({ isDeleted }) => ({
-            isDeleted: !isDeleted,
-        }));
-    }
 
-    keyDownHandler(evt) {
-        const { item, toggleTaskCompleted } = this.props;
+        setTask((task) => ({ ...task, isDeleted: !task.isDeleted }));
+    };
+
+    const keyDownHandler = (evt) => {
+        const { toggleTaskCompleted } = props;
         if (evt.shiftKey && !item.editMode) {
             toggleTaskCompleted(item.id, !item.completed);
         }
-    }
+    };
 
-    render() {
-        const { description, creatingTime, completed, id, item, setIntervalId, tick, toggleTaskCompleted, setChecked } =
-            this.props;
-        const { editiValue, isDeleted } = this.state;
-        // eslint-disable-next-line react/destructuring-assignment
-        const { minutes, seconds } = this.props.timer;
+    const { description, creatingTime, completed, id, setIntervalId, tick, toggleTaskCompleted, setChecked } = props;
+    const { editiValue, isDeleted } = taskState;
 
-        const timer = (
-            <TaskTimer
-                seconds={seconds !== '' ? seconds : 0}
-                minutes={minutes !== '' ? minutes : 0}
-                id={id}
-                item={item}
-                setIntervalId={setIntervalId}
-                isDeleted={isDeleted}
-                tick={tick}
-                setChecked={setChecked}
-            />
-        );
+    const { minutes, seconds } = props.timer;
 
-        return (
-            <li id={id} className={`${completed ? 'completed' : ''} ${item.editMode ? 'editing' : ''}`}>
-                <div className="view">
-                    <input
-                        className="toggle "
-                        type="checkbox"
-                        checked={item.completed}
-                        onChange={() => toggleTaskCompleted(item.id, !item.completed)}
-                    />
-                    <label htmlFor="task" id={id + 100} className="label">
-                        <span
-                            role="definition"
-                            id={id + 200}
-                            onKeyDown={(evt) => this.keyDownHandler(evt)}
-                            className="description"
-                            onClick={() => toggleTaskCompleted(item.id, !item.completed)}
-                        >
-                            {description}
-                        </span>
-                        <span className="created">
-                            {`created ${formatDistanceToNow(creatingTime, {
-                                includeSeconds: true,
-                                locale: KG,
-                                addSuffix: true,
-                            })}`}
-                        </span>
-                        {timer}
-                        <button
-                        label="edit"
-                        type="button"
-                        id={id + 300}
-                        className="icon icon-edit"
-                        onClick={this.onClickEdit}
-                        />
-                    <button
-                        label="delete"
-                        type="button"
-                        className="icon icon-destroy"
-                        onClick={() => this.DeleteTask()}
-                    />
-                    </label>
-                </div>
+    const timer = (
+        <TaskTimer
+            seconds={seconds !== '' ? seconds : 0}
+            minutes={minutes !== '' ? minutes : 0}
+            id={id}
+            item={item}
+            setIntervalId={setIntervalId}
+            isDeleted={isDeleted}
+            tick={tick}
+            setChecked={setChecked}
+        />
+    );
+
+    return (
+        <li id={id} className={`${completed ? 'completed' : ''} ${item.editMode ? 'editing' : ''}`}>
+            <div className="view">
                 <input
-                    type="text"
-                    className="edit"
-                    ref={this.editFieldRef}
-                    value={editiValue}
-                    onChange={this.onChangeEditiValue}
-                    onBlur={this.breakEditTask}
-                    onKeyDown={this.onKey}
+                    className="toggle "
+                    type="checkbox"
+                    checked={item.completed}
+                    onChange={() => toggleTaskCompleted(item.id, !item.completed)}
                 />
-            </li>
-        );
-    }
+                <label htmlFor="task" id={id + 100} className="label">
+                    <span
+                        role="definition"
+                        id={id + 200}
+                        onKeyDown={(evt) => keyDownHandler(evt)}
+                        className="description"
+                        onClick={() => toggleTaskCompleted(item.id, !item.completed)}
+                    >
+                        {description}
+                    </span>
+                    <span className="created">
+                        {`created ${formatDistanceToNow(creatingTime, {
+                            includeSeconds: true,
+                            locale: KG,
+                            addSuffix: true,
+                        })}`}
+                    </span>
+                    {timer}
+                    <button label="edit" type="button" id={id + 300} className="icon icon-edit" onClick={onClickEdit} />
+                    <button label="delete" type="button" className="icon icon-destroy" onClick={() => DeleteTask()} />
+                </label>
+            </div>
+            <input
+                type="text"
+                className="edit"
+                ref={editFieldRef}
+                value={editiValue}
+                onChange={onChangeEditiValue}
+                onBlur={breakEditTask}
+                onKeyDown={onKey}
+            />
+        </li>
+    );
 }
 
 Task.propTypes = {
